@@ -7,9 +7,10 @@ using System.Xml.Serialization;
 
 namespace ReverseProxy.NET6.Models.Config
 {
-    [Serializable, XmlRoot("HostInfo")]
-    public class HostInfo : IpInfo
+    [Serializable, XmlRoot("FilterConnection")]
+    public class FilterConnection
     {
-        
+        [XmlElement("IpAddress")]
+        public List<string>? IpAddresses { get; set; }
     }
 }

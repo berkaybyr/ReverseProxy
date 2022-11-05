@@ -15,7 +15,7 @@ namespace ReverseProxy.NET6.Models.Config
             {
                 if (instance == null)
                 {
-                    throw new Exception("Not initalized!");
+                    XmlHandler.ReadXml();
                 }
                 return instance;
             }

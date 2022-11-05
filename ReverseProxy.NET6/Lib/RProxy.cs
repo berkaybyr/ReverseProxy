@@ -4,9 +4,9 @@ namespace ReverseProxy.NET6.Lib
 {
     public class RProxy
     {
+        private static readonly EasLog logger = IEasLog.CreateLogger("RProxy");
         public RProxy()
         {
-            
             ForwarderMap = new Dictionary<IpInfo, PortForwarder>();
         }
 
@@ -23,20 +23,16 @@ namespace ReverseProxy.NET6.Lib
         {
             get { return ForwarderMap.Values; }
         }
-
         public static List<RProxy> LoadFromConfig()
         {
             var config = ReverseProxiesConfig.This;
-
             var proxies = new List<RProxy>();
-
             foreach (ReverseProxyConfig proxyConfig in config.Proxies)
             {
                 var proxy = new RProxy();
                 proxy.AddForwarder(proxyConfig);
                 proxies.Add(proxy);
             }
-
             return proxies;
         }
 

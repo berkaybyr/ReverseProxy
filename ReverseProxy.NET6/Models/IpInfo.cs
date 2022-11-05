@@ -7,6 +7,7 @@ using System.Xml.Serialization;
 
 namespace ReverseProxy.NET6.Models
 {
+    [Serializable, XmlRoot("IpInfo")]
     public class IpInfo
     {
         [XmlAttribute("IpAddress")]

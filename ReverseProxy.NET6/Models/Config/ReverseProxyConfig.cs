@@ -12,5 +12,16 @@ namespace ReverseProxy.NET6.Models.Config
         [XmlElement("Forward")]
         public ForwardInfo Forward { get; set; }
 
+        [XmlElement("FilterConnection")]
+        public FilterConnection? FilterConnection { get; set; }
+
+        [XmlAttribute("ReceiveTimeout")]
+        public int ReceiveTimeout { get; set; } = 10;
+
+        [XmlAttribute("SendTimeout")]
+        public int SendTimeout { get; set; } = 10;
+
+        [XmlAttribute("ConnectionLimitPerIp")]
+        public long ConnectionLimitPerIp { get; set; } = 3;
     }
 }
