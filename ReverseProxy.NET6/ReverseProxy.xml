@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+	<ReverseProxiesConfig>
+		<ReverseProxy>
+			<Host IpAddress="127.0.0.1" Port="8888"/>
+			<Forward IpAddress="144.76.119.8" Port="8888"/>
+		</ReverseProxy>
+		<ReverseProxy>
+			<Host IpAddress="127.0.0.1" Port="8889"/>
+			<Forward IpAddress="144.76.119.8" Port="8889"/>
+		</ReverseProxy>
+	</ReverseProxiesConfig>
+</root>

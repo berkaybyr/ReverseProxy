@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Net.Sockets;
 
-namespace ReverseProxy
+namespace ReverseProxy.Lib
 {
     public class CopyStream
     {
@@ -41,7 +41,6 @@ namespace ReverseProxy
                 {
                     m_sourceStream.Close();
                     m_sourceClient.Close();
-
                     m_onClose();
                 }
             }

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Net.Sockets;
 
-namespace ReverseProxy
+namespace ReverseProxy.NET6.Models
 {
     public class ClientInfo
     {

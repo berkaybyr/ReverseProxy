@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace ReverseProxy
+namespace ReverseProxy.Models.Config
 {
     public class ReverseProxiesConfig
     {
