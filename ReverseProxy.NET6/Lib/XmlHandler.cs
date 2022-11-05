@@ -30,7 +30,7 @@ namespace ReverseProxy.NET6.Lib
         }
         private static T? XmlDeserialize<T>(this XElement xElement)
         {
-            StringReader reader = new(xElement.ToString().Replace("True", "true").Replace("False", "false"));
+            StringReader reader = new(xElement.ToString());
             XmlSerializer xmlSerializer = new(typeof(T));
             var item = (T?)xmlSerializer.Deserialize(reader);
             return item;

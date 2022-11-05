@@ -44,18 +44,16 @@ namespace ReverseProxy.NET6.Lib
         private void EndAcceptSocketTcpClient(IAsyncResult ar)
         {
             var client = Server.EndAcceptTcpClient(ar);
-
             var id = Guid.NewGuid();
             var info = new ClientInfo
             {
                 Id = id,
                 SourceClient = client,
             };
-
+            
             Clients[id] = info;
-
+            Console.WriteLine("Client({0}) connected from {1}", id,client.Client.RemoteEndPoint?.ToString());
             Task.Factory.StartNew(() => HandleClient(info));
-
             Server.BeginAcceptTcpClient(EndAcceptSocketTcpClient, null);
         }
 
@@ -63,7 +61,7 @@ namespace ReverseProxy.NET6.Lib
         {
             var destClient = new TcpClient();
             info.DestClient = destClient;
-
+            Console.WriteLine("Connecting to {0}:{1} for client({2})",Config.Forward.IpAddress, Config.Forward.Port, info.Id);
             destClient.BeginConnect(Config.Forward.IpAddress, Config.Forward.Port, EndConnectWriter, info);
         }
 

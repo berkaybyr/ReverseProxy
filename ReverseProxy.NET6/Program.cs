@@ -11,7 +11,7 @@ namespace ReverseProxy.NET6
         private static void Main(string[] args)
         {
             XmlHandler.Read();
-            _ = RProxy.LoadFromConfig();
+            _ = Lib.RProxy.LoadFromConfig();
             Console.WriteLine("Proxy starting...");
             Console.WriteLine("Write /info to get client connected count for each port");
             Console.WriteLine("Write /stop to stop server");
