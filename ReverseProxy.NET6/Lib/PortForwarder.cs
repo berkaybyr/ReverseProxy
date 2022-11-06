@@ -99,7 +99,7 @@ namespace ReverseProxy.NET6.Lib
                 }
                 if (info.DestClient.Connected)
                 {
-                    //info.DestClient.Close();
+                    info.DestClient.Close();
                 }
             }
         }
@@ -118,8 +118,9 @@ namespace ReverseProxy.NET6.Lib
         private bool IsAllowedByConnectionLimitPerIp(string? ip,out int count)
         {
             count = 0;
-            if (ip == null || ip == string.Empty) return false;
-            count = Clients.Values.Where(x => x.SourceClient.Client.RemoteEndPoint?.ToString() == ip).Count();
+            var realIp = ip?.Split(":")[0];
+            if (realIp == null || realIp == string.Empty) return false;
+            count = Clients.Values.Where(x => x.SourceClient.Client.RemoteEndPoint?.ToString()?.Contains(realIp) == true).Count();
             if(count >= Config.ConnectionLimitPerIp)
             {
                 return false;

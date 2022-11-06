@@ -3,6 +3,7 @@ using ReverseProxy.NET6.Lib;
 using System;
 using System.Collections.Generic;
 using System.Net;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace ReverseProxy.NET6
 {
@@ -24,29 +25,22 @@ namespace ReverseProxy.NET6
             });
             
             var proxy = RProxy.LoadFromConfig();
-
+            var forwarders = new List<PortForwarder>();
+            foreach (var item in proxy)
+            {
+                foreach (var forwarder in item.Forwarders)
+                {
+                    forwarders.Add(forwarder);
+                }
+            }
             Thread.Sleep(1000);
-            CommandHandler.Help();
-
             string? str;
             do
             {
                 str = Console.ReadLine();
-                if (str == "/info")
-                {
-                    var list = new List<PortForwarder>();
-                    foreach(var item in proxy)
-                    {
-                        foreach(var forwarder in item.Forwarders)
-                        {
-                            list.Add(forwarder);
-                        }
-                    }
-                    CommandHandler.Info(list);
-                }
+                CommandHandler.Handle(str,forwarders);
             }
             while (str != "/stop");
-
         }
     }
 }

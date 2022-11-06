@@ -3,14 +3,11 @@
 	<ReverseProxiesConfig>
 		<ReverseProxy ConnectionLimitPerIp="1" SendTimeout="10" ReceiveTimeout="10">
 			<Host IpAddress="127.0.0.1" Port="8888"/>
-			<Forward IpAddress="127.0.0.2" Port="8888"/>
-			<FilterConnection>
-				<IpAddress>127.0.0.2</IpAddress>
-			</FilterConnection>
+			<Forward IpAddress="" Port="8888"/>
 		</ReverseProxy>
 		<ReverseProxy>
 			<Host IpAddress="127.0.0.1" Port="8889"/>
-			<Forward IpAddress="127.0.0.2" Port="8889"/>
+			<Forward IpAddress="" Port="8889"/>
 		</ReverseProxy>
 	</ReverseProxiesConfig>
 </root>
