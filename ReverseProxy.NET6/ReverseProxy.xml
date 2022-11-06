@@ -1,13 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
 	<ReverseProxiesConfig>
-		<ReverseProxy ConnectionLimitPerIp="1" SendTimeout="10" ReceiveTimeout="10">
+		<ReverseProxy ConnectionLimitPerIp="3" SendTimeout="10" ReceiveTimeout="10">
 			<Host IpAddress="127.0.0.1" Port="8888"/>
-			<Forward IpAddress="" Port="8888"/>
+			<Forward IpAddress="1" Port="8888"/>
 		</ReverseProxy>
 		<ReverseProxy>
 			<Host IpAddress="127.0.0.1" Port="8889"/>
 			<Forward IpAddress="" Port="8889"/>
+			<RequireConnectionToPort>
+				<Port>8888</Port>
+			</RequireConnectionToPort>
 		</ReverseProxy>
 	</ReverseProxiesConfig>
 </root>

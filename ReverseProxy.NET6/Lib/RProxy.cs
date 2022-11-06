@@ -7,7 +7,6 @@ namespace ReverseProxy.NET6.Lib
         private static readonly EasLog logger = IEasLog.CreateLogger("RProxy");
         public RProxy()
         {
-            ForwarderMap = new Dictionary<IpInfo, PortForwarder>();
         }
 
         public void AddForwarder(ReverseProxyConfig proxy)
@@ -17,7 +16,7 @@ namespace ReverseProxy.NET6.Lib
             forwarder.StartServer();
         }
 
-        public Dictionary<IpInfo, PortForwarder> ForwarderMap { get; private set; }
+        public static Dictionary<IpInfo, PortForwarder> ForwarderMap { get; private set; } = new();
 
         public IEnumerable<PortForwarder> Forwarders
         {

@@ -45,7 +45,7 @@ namespace ReverseProxy.NET6.Lib
                 var connected = x.Clients.Count;
                 var host = x.Config.Host.IpAddress;
                 var hostPort = x.Config.Host.Port;
-                EasLogConsole.Info(count + ". Host: {0}:{1} ForwardTo: {2}:{3} COUNT: {4}".FormatString(host,hostPort, x.Config.Forward.IpAddress, x.Config.Forward.Port ,connected));
+                EasLogConsole.Info(count + ". Host: {0}:{1} ForwardTo: {2}:{3} ConnectedClient: {4}".FormatString(host,hostPort, x.Config.Forward.IpAddress, x.Config.Forward.Port ,connected));
                 count++;
             });
         }

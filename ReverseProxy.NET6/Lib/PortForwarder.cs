@@ -37,28 +37,35 @@ namespace ReverseProxy.NET6.Lib
         {
             Server.Start();
             Server.BeginAcceptTcpClient(EndAcceptSocketTcpClient, null);
-            logger.Info("Listening from {0}:{1} forwarded to {2}:{3}".FormatString(Config.Host.IpAddress, Config.Host.Port,Config.Forward.IpAddress, Config.Forward.Port));
+            logger.Info("Listening from {0}:{1} forwarded to {2}:{3}".FormatString(Config.Host.IpAddress, Config.Host.Port, Config.Forward.IpAddress, Config.Forward.Port));
         }
 
         private void EndAcceptSocketTcpClient(IAsyncResult ar)
         {
             var client = Server.EndAcceptTcpClient(ar);
             var remoteIp = client.Client.RemoteEndPoint?.ToString();
-            
-                   
             if (!IsAllowedByFilter(client.Client.RemoteEndPoint?.ToString()))
             {
                 logger.Warn("Client {0} is not allowed to connect to {1}:{2} due to connection filter".FormatString(remoteIp, Config.Host.IpAddress, Config.Host.Port));
-                client.Close();
+                CloseBeforeCreate(client);
+                Server.BeginAcceptTcpClient(EndAcceptSocketTcpClient, null);
                 return;
             }
-            if (!IsAllowedByConnectionLimitPerIp(client.Client.RemoteEndPoint?.ToString(),out var count))
+            if (!IsAllowedByConnectionLimitPerIp(client.Client.RemoteEndPoint?.ToString(), out var count))
             {
                 logger.Warn("Client {0} has reached the connection limit of {1}/{2} to {3}:{4}".FormatString(remoteIp, count, Config.ConnectionLimitPerIp, Config.Host.IpAddress, Config.Host.Port));
-                client.Close();
+                CloseBeforeCreate(client);
+                Server.BeginAcceptTcpClient(EndAcceptSocketTcpClient, null);
                 return;
             }
-            
+            if (!IsAllowedByPortConnectionRequirement(client.Client.RemoteEndPoint?.ToString()))
+            {
+                logger.Warn("Client {0} connection now allowed to {3}:{4} due to port connection requirement".FormatString(remoteIp, count, Config.ConnectionLimitPerIp, Config.Host.IpAddress, Config.Host.Port));
+                CloseBeforeCreate(client);
+                Server.BeginAcceptTcpClient(EndAcceptSocketTcpClient, null);
+                return;
+            }
+
             var id = Guid.NewGuid();
             var info = new ClientInfo
             {
@@ -66,7 +73,7 @@ namespace ReverseProxy.NET6.Lib
                 SourceClient = client,
             };
             Clients[id] = info;
-            logger.Info(id,remoteIp ?? "-","Client connected to {1}:{2}".FormatString(remoteIp, Config.Host.IpAddress, Config.Host.Port));
+            logger.Info(id, remoteIp ?? "-", "Client connected to {1}:{2}".FormatString(remoteIp, Config.Host.IpAddress, Config.Host.Port));
             Task.Factory.StartNew(() => HandleClient(info));
             Server.BeginAcceptTcpClient(EndAcceptSocketTcpClient, null);
         }
@@ -88,44 +95,105 @@ namespace ReverseProxy.NET6.Lib
             info.SourceToDest = new CopyStream(info.SourceClient, info.DestClient, () => Close(info.Id));
             info.DestToSource = new CopyStream(info.DestClient, info.SourceClient, () => Close(info.Id));
         }
-        
+        private void CloseBeforeCreate(TcpClient client)
+        {
+            
+            try
+            {
+                if (client.Connected)
+                {
+                    client.Close();
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, "Error closing client {0}".FormatString(client.Client.RemoteEndPoint?.ToString() ?? ""));
+            }
+        }
         private void Close(Guid id)
         {
             if (Clients.TryRemove(id, out ClientInfo info))
             {
-                if (info.SourceClient.Connected)
+                try
                 {
-                    info.SourceClient.Close();
+                    if (info.SourceClient.Connected)
+                    {
+                        info.SourceClient.Close();
+                    }
+                    if (info.DestClient.Connected)
+                    {
+                        info.DestClient.Close();
+                    }
                 }
-                if (info.DestClient.Connected)
+                catch (Exception ex)
                 {
-                    info.DestClient.Close();
+                    logger.Error(ex, "Error closing client {0}".FormatString(id));
                 }
             }
         }
         private bool IsAllowedByFilter(string? ip)
         {
-            if (ip == null || ip == string.Empty) return false;
-            if (Config.FilterConnection?.IpAddresses != null && Config.FilterConnection.IpAddresses?.Count > 0)
+            try
             {
-                if (!Config.FilterConnection.IpAddresses.Contains(ip ?? ""))
+                if (ip == null || ip == string.Empty) return false;
+                if (Config.FilterConnection?.IpAddresses != null && Config.FilterConnection.IpAddresses?.Count > 0)
+                {
+                    if (!Config.FilterConnection.IpAddresses.Contains(ip ?? ""))
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                logger.Fatal("Error checking connection filtering Exception: {0}".FormatString(ex.JsonSerialize()));
+                return false;
+            }
+        }
+        private bool IsAllowedByConnectionLimitPerIp(string? ip, out int count)
+        {
+            try
+            {
+                count = 0;
+                var realIp = ip?.Split(":")[0];
+                if (realIp == null || realIp == string.Empty) return false;
+                count = Clients.Values.Where(x => x.ClientRemoteIp?.Contains(realIp) == true).Count();
+                if (count >= Config.ConnectionLimitPerIp)
                 {
                     return false;
                 }
+                return true;
             }
-            return true;
-        }
-        private bool IsAllowedByConnectionLimitPerIp(string? ip,out int count)
-        {
-            count = 0;
-            var realIp = ip?.Split(":")[0];
-            if (realIp == null || realIp == string.Empty) return false;
-            count = Clients.Values.Where(x => x.SourceClient.Client.RemoteEndPoint?.ToString()?.Contains(realIp) == true).Count();
-            if(count >= Config.ConnectionLimitPerIp)
+            catch (Exception ex)
             {
+                logger.Fatal("Error checking connection limit per ip Exception: {0}".FormatString(ex.JsonSerialize()));
+                count = 0;
                 return false;
             }
-            return true;
+        }
+        private bool IsAllowedByPortConnectionRequirement(string? ip)
+        {
+            try
+            {
+                var realIp = ip.ToIpAddressString();
+                if (ip is null) return false;
+                if (Config.RequireConnectionToPort?.Ports is null || Config.RequireConnectionToPort?.Ports?.Count == 0) return true;
+                foreach (var port in Config.RequireConnectionToPort.Ports)
+                {
+                    var forwarder = RProxy.ForwarderMap.FirstOrDefault(x => x.Key.Port == port);
+                    if (!forwarder.Value.Clients.Any(x => x.Value.ClientRemoteIp == realIp))
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                logger.Fatal("Error checking port connection requirement Exception: {0}".FormatString(ex.JsonSerialize()));
+                return false;
+            }
         }
     }
 }

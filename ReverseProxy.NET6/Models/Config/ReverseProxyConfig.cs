@@ -23,5 +23,8 @@ namespace ReverseProxy.NET6.Models.Config
 
         [XmlAttribute("ConnectionLimitPerIp")]
         public long ConnectionLimitPerIp { get; set; } = 3;
+
+        [XmlElement("RequireConnectionToPort")]
+        public RequireConnectionToPort? RequireConnectionToPort { get; set; } 
     }
 }

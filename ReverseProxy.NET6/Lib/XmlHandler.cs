@@ -14,6 +14,7 @@ namespace ReverseProxy.NET6.Lib
     {
         private static readonly string _curPath = Directory.GetCurrentDirectory();
         private static readonly EasLog logger = IEasLog.CreateLogger("XmlHandler");
+#if DEBUG || WINDOWS
         private static string _xmlSettingsPath
         {
             get
@@ -21,6 +22,15 @@ namespace ReverseProxy.NET6.Lib
                 return _curPath + "\\ReverseProxy.xml";
             }
         }
+#elif RELEASE || LINUX
+        private static string _xmlSettingsPath
+        {
+            get
+            {
+                return _curPath + "/ReverseProxy.xml";
+            }
+        }
+#endif
         public static void ReadXml()
         {
             try
